@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    image: mywebapp:secure
+    ports:
+      - "15000:5000"
+    read_only: true
+    pids_limit: 100
+    mem_limit: 512m
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - db
+    networks:
+      - frontend
+    environment:
+      - APP_PASSWORD=${APP_PASSWORD}
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:rw
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  postgres_data:
+
