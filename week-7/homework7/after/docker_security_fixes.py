@@ -35,7 +35,8 @@ RUN apk update && apk add --no-cache \\
     musl-dev \\
     libffi-dev \\
     make \\
-    wget && \\
+    wget \\
+    libpq && \\
     pip install --upgrade pip setuptools
 
 # Add non-root user
@@ -44,7 +45,8 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \\
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
@@ -59,49 +61,42 @@ CMD ["python", "app.py"]
     print(f"Overwritten {DOCKERFILE_PATH} with secure base image and best practices.")
 
 def update_docker_compose():
-    """Overwrite docker-compose.yml with secure settings."""
+    """Overwrite docker-compose.yml with secure settings and NGINX reverse proxy."""
     compose_data = {
         'version': '3.8',
         'services': {
             'web': {
                 'build': '.',
                 'image': 'mywebapp:secure',
-                'ports': ['15000:5000'],
+                'expose': ['5000'],
                 'read_only': True,
                 'pids_limit': 100,
                 'mem_limit': '512m',
                 'security_opt': ['no-new-privileges:true'],
-                'depends_on': ['db'],
-                'networks': ['frontend'],
-                'environment': ['APP_PASSWORD=${APP_PASSWORD}']
+                'networks': ['appnet'],
+                'environment': ['PASSWORD=${APP_PASSWORD}']
             },
-            'db': {
-                'image': 'postgres:13',
-                'environment': {
-                    'POSTGRES_USER': '${POSTGRES_USER}',
-                    'POSTGRES_PASSWORD': '${POSTGRES_PASSWORD}',
-                    'POSTGRES_DB': '${POSTGRES_DB}'
-                },
-                'networks': ['backend'],
-                'volumes': ['postgres_data:/var/lib/postgresql/data:rw']
+            'nginx': {
+                'image': 'nginx:alpine',
+                'ports': ['8080:80'],
+                'volumes': ['./nginx/default.conf:/etc/nginx/conf.d/default.conf'],
+                'depends_on': ['web'],
+                'networks': ['appnet']
             }
         },
         'networks': {
-            'frontend': {},
-            'backend': {}
-        },
-        'volumes': {
-            'postgres_data': {}
+            'appnet': {}
         }
     }
     with open(DOCKER_COMPOSE_PATH, 'w') as f:
         yaml.dump(compose_data, f, default_flow_style=False, sort_keys=False)
-    print(f"Overwritten {DOCKER_COMPOSE_PATH} with secure configuration.")
+    print(f"Overwritten {DOCKER_COMPOSE_PATH} with secure configuration and NGINX reverse proxy.")
 
 def main():
     print("Applying Docker security configuration...")
-    update_daemon_json()
     update_dockerfile()
     update_docker_compose()
     print("Done. Please restart Docker and rebuild your containers if needed.")
 
+if __name__ == '__main__':
+    main()

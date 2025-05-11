@@ -24,10 +24,23 @@ scan:
 
 # Docker Compose commands
 build:
-	docker compose build
+	docker compose build --no-cache
 
 start:
 	docker compose up -d
+	@echo "    Your app is running behind NGINX."
+	@echo "🔗 Access it in your browser at: http://localhost:8080/"
+	@echo ""
+	@echo "   Test your app using these sample URLs:"
+	@echo "1. Hello route:"
+	@echo "   http://localhost:8080/?name=Alice"
+	@echo ""
+	@echo "2. Ping route:"
+	@echo "   http://localhost:8080/ping?ip=8.8.8.8"
+	@echo ""
+	@echo "3. Calculate route:"
+	@echo "   http://localhost:8080/calculate?expr=5%2B3"
+
 
 stop:
 	docker compose down

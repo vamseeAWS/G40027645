@@ -5,11 +5,15 @@ import subprocess  # nosec
 import ast
 import ipaddress
 import shutil
+import re
 
 app = Flask(__name__)
 
 # Retrieve password securely from environment variable
-PASSWORD = os.environ.get('PASSWORD', 'default_password')
+PASSWORD = os.environ.get('PASSWORD')
+if not PASSWORD:
+    raise RuntimeError("Environment variable PASSWORD is required and not set.")
+
 
 @app.route('/')
 def hello():
@@ -38,12 +42,17 @@ def ping():
 # Secure eval using ast.literal_eval
 @app.route('/calculate')
 def calculate():
-    expression = request.args.get('expr')
+    expression = request.args.get('expr', '')
+    
+    # Only allow digits, operators, parentheses, and whitespace
+    if not re.match(r'^[0-9\.\+\-\*\/\(\)\s]+$', expression):
+        return jsonify({"error": "Invalid characters in expression"}), 400
+
     try:
-        result = ast.literal_eval(expression)
+        result = eval(expression, {"__builtins__": None}, {})
         return str(result)
-    except (SyntaxError, ValueError):
+    except Exception:
         return jsonify({"error": "Invalid expression"}), 400
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000)
+    app.run(host='0.0.0.0', port=5000)
