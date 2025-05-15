@@ -4,12 +4,10 @@ DOCKER_COMPOSE := docker compose
 
 up:
 	$(DOCKER_COMPOSE) up -d --build
+	bash setup.sh
 
 down:
 	$(DOCKER_COMPOSE) down -v
-
-setup:
-	bash setup.sh
 
 logs:
 	$(DOCKER_COMPOSE) logs -f

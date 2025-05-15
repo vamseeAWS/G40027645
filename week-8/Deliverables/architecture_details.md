@@ -1,76 +1,97 @@
 # IAM Architecture Overview – Lab 1, Lab 2 & Lab 3
 
-This repository demonstrates how to design and implement secure Identity and Access Management (IAM) architectures using **Keycloak** as the Identity Provider (IdP) and **Flask** as the protected resource server.
+This repository demonstrates how to design and implement secure Identity and Access Management (IAM) architectures using **Keycloak** as the Identity Provider (IdP). It showcases both modern and legacy authentication flows using **OIDC** and **SAML**, integrated with Python and PHP applications.
 
 ---
 
-## Architecture Components and Purpose
+##  Architecture Components and Purpose
 
 ### 🔹 Keycloak (Identity Provider)
-- Used in all labs.
-- Manages user identity, authentication, and issues tokens (JWT or SAML).
-- Realms, Clients, and Users are configured within Keycloak.
+- Used in **all labs** as the centralized authentication system.
+- Manages:
+  - Realms (e.g., `CentralIAM`)
+  - Users, Groups, Roles
+  - OIDC and SAML Clients
+  - Signing certificates
+- Backed by **PostgreSQL** for persistent configuration and sessions.
 
-> **Significance**: Keycloak is the heart of the IAM setup — it authenticates users and issues identity tokens or SAML assertions consumed by the applications.
-
----
-
-### 🔹 Flask App (Protected Resource Server)
-- Found in:
-  - `lab2/app/app.py` – uses OAuth2/OIDC
-  - `lab3/app/app.py` – uses SAML
-- Protects routes and validates authentication data from Keycloak.
-
-> **Significance**: Flask simulates a microservice that enforces authentication and authorization using identity assertions or tokens.
+> **Key Role**: Trust anchor that issues tokens or assertions after successful authentication.
 
 ---
 
-### 🔹 OAuth2 & OpenID Connect (Lab 2)
-- Implements modern identity delegation using **OAuth2/OIDC**.
-- Users authenticate via Keycloak, receive an access token, and use it to access protected Flask routes.
+### 🔹 Flask Application (Protected Resource Server)
+- A Python app requiring authentication before access.
+- **Lab 2**: Uses **OIDC** and validates JWTs directly.
+- **Lab 3**: Protected by **SimpleSAMLphp**, which handles SAML assertions.
 
-> **Significance**: Learn how to secure APIs using bearer tokens and validate JWTs securely on the backend.
+> **Key Role**: Simulates a microservice validating external identity assertions.
 
 ---
 
-### 🔹 SAML-based Authentication (Lab 3)
-- Replaces OIDC with **SAML 2.0** for authentication.
-- Keycloak is configured as a **SAML Identity Provider (IdP)**.
-- Flask acts as the **Service Provider (SP)** using a SAML client library.
+### 🔹 SimpleSAMLphp (Service Provider) – Lab 3
+- Acts as the **SAML Service Provider (SP)** in the Lab 3 flow.
+- Routes authentication to Keycloak via SAML 2.0.
+- Validates the signature on SAML assertions using a trusted X.509 certificate.
 
-> **Significance**: Understand how SAML differs from OIDC and how it is used to integrate with legacy enterprise systems.
+> **Key Role**: Middleware bridge that supports legacy SAML-based federation.
+
+---
+
+### 🔹 OAuth2 / OIDC – Lab 2
+- Used in Lab 2 for secure, modern API protection.
+- Flask requests OIDC login from Keycloak, receives a JWT access token, and verifies it.
+
+> **Key Role**: Demonstrates modern token-based authorization flow.
+
+---
+
+### 🔹 SAML 2.0 – Lab 3
+- Used in Lab 3 for legacy authentication integration.
+- Keycloak serves as a **SAML IdP**, and SimpleSAMLphp acts as the SP.
+- Flow:
+  1. Browser accesses SP → SP redirects to Keycloak
+  2. User authenticates in Keycloak
+  3. Signed SAML response returned to SP
+  4. SP validates and grants access
+- Sessions visible in Keycloak confirm login success. 
+-  Note: SP UI post-login may still show blank, but IdP confirms session/Debugging final UI rendering in SimpleSAMLphp
+
+> **Key Role**: Demonstrates enterprise SAML federation and assertion trust.
 
 ---
 
 ### 🔹 Docker Compose
-- Used in all labs via `docker-compose.yml`.
-- Spins up:
-  - Keycloak
-  - Flask app or NodeJS intranet service
-- Handles container orchestration and networking.
+- Each lab uses Docker containers defined in `docker-compose.yml`.
+- Containers include:
+  - Keycloak (w/ import realm)
+  - PostgreSQL
+  - Flask app or SimpleSAMLphp SP
+  - LDAP & phpLDAPadmin
 
-> **Significance**: Enables consistent deployment of IAM architecture for local testing and development.
+> **Key Role**: Provides local, reproducible, and network-isolated IAM environments.
 
 ---
 
-### 🔹 Setup Automation Scripts
-- Located in:
-  - `lab2/setup.sh`
-  - `lab3/setup.sh`
-- Pre-configure Keycloak:
-  - Create realms, clients, and users.
-  - Import test data using `.ldif` or `.json`.
+### 🔹 Automation Scripts
+- Found in each lab as `setup.sh`.
+- Automatically:
+  - Starts containers
+  - Imports Keycloak realm via `realm-export.json`
+  - Loads sample users and client configurations
 
-> **Significance**: Automation ensures reproducible, secure, and rapid deployment across environments.
+> **Key Role**: Eliminates manual setup and ensures consistency across runs.
 
 ---
 
 ## 🧪 Labs Summary
 
-| Lab | Authentication | Protocol | App Technology | Token Format |
-|-----|----------------|----------|----------------|--------------|
-| Lab 1 | Basic Auth / LDAP | N/A | NodeJS         | N/A          |
-| Lab 2 | OIDC            | OAuth2  | Flask (Python) | JWT          |
-| Lab 3 | SAML            | SAML 2.0| Flask (Python) | XML Assertion |
+| Lab   | Auth Method     | Protocol    | Middleware        | Language     | Token Format   |
+|--------|------------------|-------------|--------------------|--------------|----------------|
+| Lab 1 | Basic Auth / LDAP | N/A         | N/A                | NodeJS       | N/A            |
+| Lab 2 | OIDC              | OAuth2/OIDC | Flask (direct)     | Python       | JWT            |
+| Lab 3 | SAML              | SAML 2.0    | SimpleSAMLphp (SP) | PHP + Flask  | XML Assertion  |
 
 ---
+
+
+

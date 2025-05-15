@@ -1,6 +1,28 @@
 {
   "realm": "CentralIAM",
   "enabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "uma_authorization",
+        "description": "UMA access",
+        "composite": false,
+        "clientRole": false,
+        "attributes": {}
+      }
+    ],
+    "client": {
+      "http://localhost:8082/simplesaml/module.php/saml/sp/metadata.php/default-sp": [
+        {
+          "name": "app_user",
+          "description": "User role for SAML SP",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ]
+    }
+  },
   "users": [
     {
       "username": "user",
@@ -8,6 +30,7 @@
       "emailVerified": true,
       "firstName": "Test",
       "lastName": "User",
+      "email": "mudi@gmail.com",
       "credentials": [
         {
           "type": "password",
@@ -19,23 +42,72 @@
         "offline_access",
         "uma_authorization",
         "default-roles-centraliam"
-      ]
+      ],
+      "clientRoles": {
+        "http://localhost:8082/simplesaml/module.php/saml/sp/metadata.php/default-sp": ["app_user"]
+      }
     }
   ],
   "clients": [
     {
-      "clientId": "intranet",
-      "protocol": "openid-connect",
-      "publicClient": true,
-      "directAccessGrantsEnabled": true,
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["http://localhost:3000"],
-      "baseUrl": "http://localhost:3000",
-      "rootUrl": "http://localhost:3000",
-      "adminUrl": "http://localhost:3000",
-      "bearerOnly": false,
+      "clientId": "http://localhost:8082/simplesaml/module.php/saml/sp/metadata.php/default-sp",
+      "protocol": "saml",
+      "enabled": true,
+      "adminUrl": "http://localhost:8082/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp",
+      "attributes": {
+        "saml.assertion.signature": "true",
+        "saml.force.post.binding": "true",
+        "saml.encrypt": "false",
+        "saml.client.signature": "false",
+        "saml.authnstatement": "true",
+        "saml.onetimeuse.condition": "false",
+        "saml_name_id_format": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+      },
+      "redirectUris": ["http://localhost:8082/simplesaml/*"],
+      "baseUrl": "http://localhost:8082/simplesaml",
       "fullScopeAllowed": true,
-      "enabled": true
+      "bearerOnly": false,
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "consentRequired": false,
+      "clientAuthenticatorType": "client-x509",
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.name": "email",
+            "attribute.friendly.name": "email",
+            "user.attribute": "email"
+          }
+        },
+        {
+          "name": "first name",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.name": "firstName",
+            "attribute.friendly.name": "firstName",
+            "user.attribute": "firstName"
+          }
+        },
+        {
+          "name": "last name",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.name": "lastName",
+            "attribute.friendly.name": "lastName",
+            "user.attribute": "lastName"
+          }
+        }
+      ],
+      "defaultClientScopes": ["role_list"],
+      "optionalClientScopes": []
     }
   ]
 }

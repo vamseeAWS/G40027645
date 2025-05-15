@@ -25,3 +25,12 @@ reset: down
 # Follow logs
 logs:
 	@$(DOCKER_COMPOSE) logs -f
+
+# Run a basic integration test to verify the intranet app is responding
+test:
+	@echo "[*] Running Lab 1 connectivity test..."
+	@sleep 3
+	@echo "[*] Sending HTTP request to intranet app at http://localhost:3000 ..."
+	@curl -i --max-time 5 http://localhost:3000 || echo "[-] Request to intranet failed"
+	@echo ""
+	@echo "[*] If you see a login redirect or valid HTML, Keycloak + Node.js integration is working."
