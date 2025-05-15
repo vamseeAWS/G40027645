@@ -22,18 +22,19 @@ This lab demonstrates how to design and implement secure Identity and Access Man
 ### 🔹 Flask Application (Protected Resource Server)
 - A Python app requiring authentication before access.
 - **Lab 2**: Uses **OIDC** and validates JWTs directly.
-- **Lab 3**: Protected by **SimpleSAMLphp**, which handles SAML assertions.
+- **Lab 3**: Uses **SimpleSAMLphp** which handles SAML assertions.
 
 > **Key Role**: Simulates a microservice validating external identity assertions.
 
 ---
 
-### 🔹 SimpleSAMLphp (Service Provider) – Lab 3
-- Acts as the **SAML Service Provider (SP)** in the Lab 3 flow.
-- Routes authentication to Keycloak via SAML 2.0.
-- Validates the signature on SAML assertions using a trusted X.509 certificate.
+### 🔹 Lab 1 – Keycloak + Intranet App (Initial IAM Architecture) – Lab 1
+- Set up a basic IAM architecture using Docker Compose.
+- Deploy Keycloak as the identity provider (IdP).
+- Launch a Node.js intranet application that simulates an internal service.
+- Begin understanding authentication flows, even without full OAuth2/OIDC integration yet.
 
-> **Key Role**: Middleware bridge that supports legacy SAML-based federation.
+> **Key Role**: This lab sets the foundation for more advanced setups in Lab 2 (OIDC) and Lab 3 (SAML).
 
 ---
 
