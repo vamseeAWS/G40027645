@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: lab2-keycloak
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    command: start-dev
+
+  app:
+    build:
+      context: ./app
+    container_name: lab2-app
+    ports:
+      - "15000:5000"
+    depends_on:
+      - keycloak
+    environment:
+      FLASK_ENV: production

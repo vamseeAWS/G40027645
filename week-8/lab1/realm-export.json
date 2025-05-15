@@ -1,0 +1,23 @@
+{
+  "realm": "CentralIAM",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "intranet",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "baseUrl": "http://localhost:3000",
+      "fullScopeAllowed": true
+    }
+  ]
+}
+

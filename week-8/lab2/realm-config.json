@@ -1,0 +1,35 @@
+{
+  "id": "FintechApp",
+  "realm": "FintechApp",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "flask-client",
+      "secret": "secret",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "redirectUris": ["http://localhost:15000/*"],
+      "webOrigins": ["http://localhost:15000"]
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "email": "testuser@example.com",
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
