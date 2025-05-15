@@ -1,6 +1,6 @@
 # IAM Architecture Overview – Lab 1, Lab 2 & Lab 3
 
-This repository demonstrates how to design and implement secure Identity and Access Management (IAM) architectures using **Keycloak** as the Identity Provider (IdP). It showcases both modern and legacy authentication flows using **OIDC** and **SAML**, integrated with Python and PHP applications.
+This lab demonstrates how to design and implement secure Identity and Access Management (IAM) architectures using **Keycloak** as the Identity Provider (IdP). It showcases authentication flows using **OIDC** and **SAML**, integrated with Python and PHP applications.
 
 ---
 
@@ -47,14 +47,14 @@ This repository demonstrates how to design and implement secure Identity and Acc
 
 ### 🔹 SAML 2.0 – Lab 3
 - Used in Lab 3 for legacy authentication integration.
-- Keycloak serves as a **SAML IdP**, and SimpleSAMLphp acts as the SP.
+- Keycloak serves as a **SAML IdP**, and SimpleSAMLphp acts as the **SAML SP**.
 - Flow:
   1. Browser accesses SP → SP redirects to Keycloak
   2. User authenticates in Keycloak
   3. Signed SAML response returned to SP
   4. SP validates and grants access
-- Sessions visible in Keycloak confirm login success. 
--  Note: SP UI post-login may still show blank, but IdP confirms session/Debugging final UI rendering in SimpleSAMLphp
+- Sessions visible in Keycloak confirm login success.
+- Note: SP UI post-login may still show blank, but IdP confirms session/Debugging final UI rendering in SimpleSAMLphp
 
 > **Key Role**: Demonstrates enterprise SAML federation and assertion trust.
 
@@ -83,7 +83,7 @@ This repository demonstrates how to design and implement secure Identity and Acc
 
 ---
 
-## 🧪 Labs Summary
+##  Labs Summary
 
 | Lab   | Auth Method     | Protocol    | Middleware        | Language     | Token Format   |
 |--------|------------------|-------------|--------------------|--------------|----------------|
@@ -92,6 +92,3 @@ This repository demonstrates how to design and implement secure Identity and Acc
 | Lab 3 | SAML              | SAML 2.0    | SimpleSAMLphp (SP) | PHP + Flask  | XML Assertion  |
 
 ---
-
-
-
