@@ -6,6 +6,13 @@ up:
 	$(DOCKER_COMPOSE) up -d --build
 	bash setup.sh
 
+reset: down
+	@echo "[*] Resetting lab environment..."
+	@rm -rf keycloak_data
+	@docker system prune -f
+	$(DOCKER_COMPOSE) up -d --build
+	@bash setup.sh
+
 down:
 	$(DOCKER_COMPOSE) down -v
 

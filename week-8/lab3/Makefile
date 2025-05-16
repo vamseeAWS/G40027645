@@ -12,6 +12,10 @@ logs:
 	@echo "[*] Showing logs (Ctrl+C to stop)..."
 	docker-compose logs -f
 
+reset: down
+	@docker system prune -f
+	@bash setup.sh
+
 test:
 	@echo "[*] Running Keycloak login test..."
 	python3 test_login.py
