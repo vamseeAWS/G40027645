@@ -198,9 +198,8 @@ This ensured that no high-severity CVEs were present in the final container imag
 
 The refactored Docker deployment, with NGINX as a reverse proxy and the removal of PostgreSQL, significantly reduces risk and aligns with container security best practices. This improvement, guided by STRIDE, MITRE ATT&CK, and NIST 800-53, demonstrates a clear uplift in the application’s security posture.
 
----
 
-## References
+## 9. References
 
 - OWASP Docker Top 10: https://owasp.org/www-project-docker-top-10/  
 - CIS Docker Benchmark: https://www.cisecurity.org/benchmark/docker  
