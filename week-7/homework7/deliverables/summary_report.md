@@ -3,6 +3,8 @@
 **Application Stack:** Flask Web Application, Docker Containers, NGINX Reverse Proxy  
 **Frameworks Used:** STRIDE Threat Model, MITRE ATT&CK for Containers, NIST 800-53 Control Mapping
 
+---
+
 ## 1. Overview
 
 This report documents the threat modeling and security assessment of a Flask-based web application deployed in Docker containers, fronted by an NGINX reverse proxy. The objective was to identify and mitigate key security vulnerabilities across the application and container infrastructure using STRIDE, MITRE ATT&CK for Containers, and NIST 800-53 controls.
@@ -17,6 +19,8 @@ The final "after" architecture removed unnecessary components, implemented harde
 
 
 Here is the updated `README.md` with a new section (`Section 8: Lab Execution and Makefile Instructions`) added in the same professional and detailed style as the rest of the report:
+
+---
 
 ## 2. Architectural Comparison
 
@@ -52,6 +56,7 @@ These combined changes significantly improved the security posture of the deploy
 - PostgreSQL container removed to reduce unnecessary attack surface
 - Health monitoring added using Docker `HEALTHCHECK`
 
+---
 
 ## 3. STRIDE Threat Model 
 
@@ -78,6 +83,7 @@ Another key architectural improvement in the after state was the removal of the 
 | **DoS** | No resource constraints | Memory/PID limits added; health check implemented |
 | **Privilege Escalation** | `shell=True` and root access | Removed `shell=True`, validated input, least privilege enforced |
 
+---
 
 ## 4. MITRE ATT&CK for Containers Mapping
 
@@ -96,6 +102,7 @@ While some techniques like T1610 (Deploy Container) remained partially addressed
 | T1611 | Escape to Host | Poor process isolation | Enforced user namespaces, limits |
 | T1525 | Implant Internal Image | Unused PostgreSQL container | Removed entirely |
 
+---
 
 ## 5. NIST 800-53 Control Mapping
 
@@ -111,6 +118,7 @@ The report maps specific vulnerabilities to relevant NIST 800-53 controls to ali
 | SI-4 / SI-2 | Monitoring & Flaw Remediation | No monitoring | Docker `HEALTHCHECK` added |
 | SC-7 | Boundary Protection | Exposed, unused DB | PostgreSQL container removed |
 
+---
 
 ## 6. Recommendations for Continued Hardening
 
@@ -119,6 +127,7 @@ The report maps specific vulnerabilities to relevant NIST 800-53 controls to ali
 - Use secure secret stores like **HashiCorp Vault** or **Docker Secrets**
 - Add HTTPS termination in NGINX for encrypted browser access
 
+---
 
 ## 7. Lab Execution and Makefile Instructions
 
@@ -194,13 +203,15 @@ This ensured that no high-severity CVEs were present in the final container imag
   make clean
   ```
 
+---
+
 ## 8. Conclusion
 
 The refactored Docker deployment, with NGINX as a reverse proxy and the removal of PostgreSQL, significantly reduces risk and aligns with container security best practices. This improvement, guided by STRIDE, MITRE ATT&CK, and NIST 800-53, demonstrates a clear uplift in the application’s security posture.
 
 ---
 
-## References
+## 9. References
 
 - OWASP Docker Top 10: https://owasp.org/www-project-docker-top-10/  
 - CIS Docker Benchmark: https://www.cisecurity.org/benchmark/docker  
@@ -211,3 +222,5 @@ The refactored Docker deployment, with NGINX as a reverse proxy and the removal 
 - Trivy Scanner: https://github.com/aquasecurity/trivy  
 - Docker Scout: https://docs.docker.com/scout/  
 - Snyk Container Scanning: https://snyk.io/product/container-vulnerability-management/
+
+---
