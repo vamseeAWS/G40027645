@@ -1,0 +1,35 @@
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    command: >
+      sh -c "java
+        -Dlog4j2.formatMsgNoLookups=false
+        -Dcom.sun.jndi.ldap.object.trustURLCodebase=true
+        -Dcom.sun.jndi.rmi.object.trustURLCodebase=true
+        -jar /app.jar"
+
+  ldap-marshalsec:
+    build:
+      context: ./exploit
+      dockerfile: Dockerfile
+    container_name: ldap-marshalsec
+    ports:
+      - "1389:1389"
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      - HOST_IP=${HOST_IP}
+
+  http-server:
+    image: python:3.9-slim
+    working_dir: /app
+    volumes:
+      - ./exploit:/app
+    command: python3 -m http.server 8000
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
