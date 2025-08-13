@@ -8,11 +8,13 @@
 
 import os
 import time
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 from pycaret.classification import load_model as load_clf_model, predict_model as predict_clf
-from pycaret.clustering   import load_model as load_clu_model, predict_model as predict_clu
-from genai_prescriptions  import generate_prescription
+from pycaret.clustering import load_model as load_clu_model, predict_model as predict_clu
+from genai_prescriptions import generate_prescription
 
 # -----------------------------
 # Page configuration
@@ -20,16 +22,18 @@ from genai_prescriptions  import generate_prescription
 st.set_page_config(
     page_title="GenAI-Powered Phishing SOAR",
     page_icon="🛡️",
-    layout="wide"
+    layout="wide",
 )
 
 # -----------------------------
-# Paths (one place to change if layout moves)
+# Paths resolved relative to this file (robust on Streamlit Cloud)
 # -----------------------------
-CLF_PATH = 'models/phishing_url_detector'
-CLU_PATH = 'models/threat_actor_profiler'
-FEATURE_PLOT_PATH = 'models/feature_importance.png'
-CLUSTER_CSV = 'data/phishing_with_clusters.csv'
+BASE_DIR = Path(__file__).resolve().parent  # .../SEAS_8414/week-8
+
+CLF_PATH = str(BASE_DIR / "models" / "phishing_url_detector")       # PyCaret adds .pkl
+CLU_PATH = str(BASE_DIR / "models" / "threat_actor_profiler")
+FEATURE_PLOT_PATH = str(BASE_DIR / "models" / "feature_importance.png")
+CLUSTER_CSV = str(BASE_DIR / "data" / "phishing_with_clusters.csv")
 
 # -----------------------------
 # Threat Actor Mapping (cluster -> profile)
@@ -63,10 +67,11 @@ PROFILE_DESCRIPTIONS = {
 @st.cache_resource
 def load_assets():
     """Loads trained models (classifier + clustering) and feature importance plot."""
-    clf_model = load_clf_model(CLF_PATH) if os.path.exists(CLF_PATH + '.pkl') else None
-    clu_model = load_clu_model(CLU_PATH) if os.path.exists(CLU_PATH + '.pkl') else None
+    clf_model = load_clf_model(CLF_PATH) if os.path.exists(CLF_PATH + ".pkl") else None
+    clu_model = load_clu_model(CLU_PATH) if os.path.exists(CLU_PATH + ".pkl") else None
     plot_path = FEATURE_PLOT_PATH if os.path.exists(FEATURE_PLOT_PATH) else None
     return clf_model, clu_model, plot_path
+
 
 model, cluster_model, feature_plot = load_assets()
 
@@ -78,15 +83,15 @@ with st.sidebar:
     st.write("Describe the characteristics of a suspicious URL below.")
 
     form_values = {
-        'url_length':  st.select_slider("URL Length", options=['Short', 'Normal', 'Long'], value='Long'),
-        'ssl_state':   st.select_slider("SSL Certificate Status", options=['Trusted', 'Suspicious', 'None'], value='Suspicious'),
-        'sub_domain':  st.select_slider("Sub-domain Complexity", options=['None', 'One', 'Many'], value='One'),
-        'prefix_suffix':         st.checkbox("URL has a Prefix/Suffix (e.g., '-')", value=True),
-        'has_ip':                st.checkbox("URL uses an IP Address", value=False),
-        'short_service':         st.checkbox("Is it a shortened URL", value=False),
-        'at_symbol':             st.checkbox("URL contains '@' symbol", value=False),
-        'abnormal_url':          st.checkbox("Is it an abnormal URL", value=True),
-        'has_political_keyword': st.checkbox("Contains political/activist keyword", value=False),
+        "url_length": st.select_slider("URL Length", options=["Short", "Normal", "Long"], value="Long"),
+        "ssl_state": st.select_slider("SSL Certificate Status", options=["Trusted", "Suspicious", "None"], value="Suspicious"),
+        "sub_domain": st.select_slider("Sub-domain Complexity", options=["None", "One", "Many"], value="One"),
+        "prefix_suffix": st.checkbox("URL has a Prefix/Suffix (e.g., '-')", value=True),
+        "has_ip": st.checkbox("URL uses an IP Address", value=False),
+        "short_service": st.checkbox("Is it a shortened URL", value=False),
+        "at_symbol": st.checkbox("URL contains '@' symbol", value=False),
+        "abnormal_url": st.checkbox("Is it an abnormal URL", value=True),
+        "has_political_keyword": st.checkbox("Contains political/activist keyword", value=False),
     }
 
     st.divider()
@@ -95,7 +100,7 @@ with st.sidebar:
 
     # --- Utilities ---
     st.divider()
-    show_debug = st.checkbox("Show clustering debug", value=False)  # optional
+    show_debug = st.checkbox("Show clustering debug", value=False)
     if st.button("↻ Reload models (clear cache)", use_container_width=True):
         load_assets.clear()
         st.success("Cache cleared. Reloading…")
@@ -109,7 +114,7 @@ if not model:
         "Classifier model not found. Run training to generate artifacts:\n\n"
         "• models/phishing_url_detector.pkl\n"
         "• models/feature_importance.png\n\n"
-        "Use `python train_model.py` or `make train`.",
+        "Use `python train_model.py` or `make train`."
     )
     st.stop()
 
@@ -128,17 +133,19 @@ else:
     # Step 1: Convert form inputs to model-friendly numeric features
     # -------------------------
     input_dict = {
-        'having_IP_Address':  1 if form_values['has_ip'] else -1,
-        'URL_Length':         -1 if form_values['url_length'] == 'Short' else (0 if form_values['url_length'] == 'Normal' else 1),
-        'Shortining_Service': 1 if form_values['short_service'] else -1,
-        'having_At_Symbol':   1 if form_values['at_symbol'] else -1,
-        'double_slash_redirecting': -1,  # baseline
-        'Prefix_Suffix':      1 if form_values['prefix_suffix'] else -1,
-        'having_Sub_Domain':  -1 if form_values['sub_domain'] == 'None' else (0 if form_values['sub_domain'] == 'One' else 1),
-        'SSLfinal_State':     -1 if form_values['ssl_state'] == 'None' else (0 if form_values['ssl_state'] == 'Suspicious' else 1),
-        'Abnormal_URL':       1 if form_values['abnormal_url'] else -1,
-        'URL_of_Anchor': 0, 'Links_in_tags': 0, 'SFH': 0,
-        'has_political_keyword': 1 if form_values['has_political_keyword'] else -1,
+        "having_IP_Address": 1 if form_values["has_ip"] else -1,
+        "URL_Length": -1 if form_values["url_length"] == "Short" else (0 if form_values["url_length"] == "Normal" else 1),
+        "Shortining_Service": 1 if form_values["short_service"] else -1,
+        "having_At_Symbol": 1 if form_values["at_symbol"] else -1,
+        "double_slash_redirecting": -1,  # baseline
+        "Prefix_Suffix": 1 if form_values["prefix_suffix"] else -1,
+        "having_Sub_Domain": -1 if form_values["sub_domain"] == "None" else (0 if form_values["sub_domain"] == "One" else 1),
+        "SSLfinal_State": -1 if form_values["ssl_state"] == "None" else (0 if form_values["ssl_state"] == "Suspicious" else 1),
+        "Abnormal_URL": 1 if form_values["abnormal_url"] else -1,
+        "URL_of_Anchor": 0,
+        "Links_in_tags": 0,
+        "SFH": 0,
+        "has_political_keyword": 1 if form_values["has_political_keyword"] else -1,
     }
     input_data = pd.DataFrame([input_dict])
 
@@ -146,17 +153,19 @@ else:
     # Risk scoring (visual only)
     # -------------------------
     risk_scores = {
-        "Bad SSL":            25 if input_dict['SSLfinal_State'] < 1 else 0,
-        "Abnormal URL":       20 if input_dict['Abnormal_URL'] == 1 else 0,
-        "Prefix/Suffix":      15 if input_dict['Prefix_Suffix'] == 1 else 0,
-        "Shortened URL":      15 if input_dict['Shortining_Service'] == 1 else 0,
-        "Complex Sub-domain": 10 if input_dict['having_Sub_Domain'] == 1 else 0,
-        "Long URL":           10 if input_dict['URL_Length'] == 1 else 0,
-        "Uses IP Address":     5 if input_dict['having_IP_Address'] == 1 else 0,
-        "Political Keyword":   5 if input_dict['has_political_keyword'] == 1 else 0,
+        "Bad SSL": 25 if input_dict["SSLfinal_State"] < 1 else 0,
+        "Abnormal URL": 20 if input_dict["Abnormal_URL"] == 1 else 0,
+        "Prefix/Suffix": 15 if input_dict["Prefix_Suffix"] == 1 else 0,
+        "Shortened URL": 15 if input_dict["Shortining_Service"] == 1 else 0,
+        "Complex Sub-domain": 10 if input_dict["having_Sub_Domain"] == 1 else 0,
+        "Long URL": 10 if input_dict["URL_Length"] == 1 else 0,
+        "Uses IP Address": 5 if input_dict["having_IP_Address"] == 1 else 0,
+        "Political Keyword": 5 if input_dict["has_political_keyword"] == 1 else 0,
     }
-    risk_df = pd.DataFrame(list(risk_scores.items()), columns=['Feature', 'Risk Contribution']) \
-                .sort_values('Risk Contribution', ascending=False)
+    risk_df = (
+        pd.DataFrame(list(risk_scores.items()), columns=["Feature", "Risk Contribution"])
+        .sort_values("Risk Contribution", ascending=False)
+    )
 
     # -------------------------
     # Execution workflow
@@ -165,7 +174,7 @@ else:
         st.write("▶️ **Step 1: Predictive Analysis** — Running classification model.")
         time.sleep(0.5)
         clf_pred = predict_clf(model, data=input_data)
-        is_malicious = clf_pred['prediction_label'].iloc[0] == 1
+        is_malicious = clf_pred["prediction_label"].iloc[0] == 1
         verdict = "MALICIOUS" if is_malicious else "BENIGN"
         st.write(f"▶️ **Step 2: Verdict Interpretation** — Model predicts **{verdict}**.")
         time.sleep(0.5)
@@ -177,13 +186,13 @@ else:
             try:
                 clu_pred_df = predict_clu(cluster_model, data=input_data)  # predict_model -> typically 'Label'
                 # Prefer 'Label' (predict_model), fall back to 'Cluster' (assign_model), then 'prediction_label'
-                label_col = next((c for c in ['Label', 'Cluster', 'prediction_label'] if c in clu_pred_df.columns), None)
+                label_col = next((c for c in ["Label", "Cluster", "prediction_label"] if c in clu_pred_df.columns), None)
                 if label_col is None:
-                    st.warning(f"Clustering output missing 'Label'/'Cluster'. Columns: {list(clu_pred_df.columns)}")
+                    st.warning(f"Clustering output missing label column. Columns: {list(clu_pred_df.columns)}")
                 else:
                     raw = clu_pred_df[label_col].iloc[0]
                     # Coerce values like 2, "2", "Cluster 2" -> 2
-                    val = pd.to_numeric(str(raw).replace('Cluster', '').strip(), errors='coerce')
+                    val = pd.to_numeric(str(raw).replace("Cluster", "").strip(), errors="coerce")
                     if pd.notna(val):
                         cluster_id = int(val)
                         predicted_profile = CLUSTER_TO_PROFILE.get(cluster_id, "Unknown")
@@ -209,12 +218,9 @@ else:
     # -----------------------------
     # Output tabs (Threat Attribution included)
     # -----------------------------
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 **Analysis Summary**",
-        "📈 **Visual Insights**",
-        "📜 **Prescriptive Plan**",
-        "🕵️ **Threat Attribution**"
-    ])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["📊 **Analysis Summary**", "📈 **Visual Insights**", "📜 **Prescriptive Plan**", "🕵️ **Threat Attribution**"]
+    )
 
     # Tab 1: Summary
     with tab1:
@@ -225,8 +231,7 @@ else:
             st.success("**Prediction: Benign URL**", icon="✅")
         st.metric(
             "Malicious Confidence Score",
-            f"{clf_pred['prediction_score'].iloc[0]:.2%}" if is_malicious
-            else f"{1 - clf_pred['prediction_score'].iloc[0]:.2%}"
+            f"{clf_pred['prediction_score'].iloc[0]:.2%}" if is_malicious else f"{1 - clf_pred['prediction_score'].iloc[0]:.2%}",
         )
         st.caption("This score represents the model's confidence in its prediction.")
 
@@ -234,7 +239,7 @@ else:
     with tab2:
         st.subheader("Visual Analysis")
         st.write("#### Risk Contribution by Feature")
-        st.bar_chart(risk_df.set_index('Feature'))
+        st.bar_chart(risk_df.set_index("Feature"))
         st.caption("Shows which input features contributed most to the risk score.")
         if feature_plot:
             st.write("#### Model Feature Importance (Global)")
@@ -273,8 +278,8 @@ else:
             if os.path.exists(CLUSTER_CSV):
                 with st.expander("🔧 Developer: Show cluster↔actor_profile purity table"):
                     df = pd.read_csv(CLUSTER_CSV)
-                    if {'cluster_id', 'actor_profile'}.issubset(df.columns):
-                        ct = pd.crosstab(df['cluster_id'], df['actor_profile'], normalize='index').round(2)
+                    if {"cluster_id", "actor_profile"}.issubset(df.columns):
+                        ct = pd.crosstab(df["cluster_id"], df["actor_profile"], normalize="index").round(2)
                         st.write("Rows = discovered clusters, Columns = ground-truth actor_profile (row-normalized).")
                         st.dataframe(ct)
                         st.caption("Use the dominant column per row to set CLUSTER_TO_PROFILE.")
