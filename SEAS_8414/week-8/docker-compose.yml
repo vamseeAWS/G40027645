@@ -1,0 +1,18 @@
+services:
+  mini-soar-app:
+    build: .
+    container_name: mini-soar
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    command: >
+      /bin/sh -lc '
+        if [ ! -f models/phishing_url_detector.pkl ] || [ ! -f models/threat_actor_profiler.pkl ]; then
+          echo "Models missing — training now..."; python train_model.py;
+        else
+          echo "Models found — skipping training.";
+        fi
+        exec streamlit run app.py --server.address 0.0.0.0 --server.port 8501 --server.fileWatcherType none
+      '
+

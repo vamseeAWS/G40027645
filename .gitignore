@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.log
+
+# Byte-compiled and distribution
+*.so
+*.dll
+*.dylib
+
+# Virtual Environments
+venv/
+.env
+.env.*
+
+# --- Virtual environments anywhere ---
+.venv/
+venv/
+**/.venv/**
+**/venv/**
+
+SEAS_8405/
+
+# --- Python caches anywhere ---
+**/__pycache__/
+*.py[cod]
+
+# --- Streamlit secrets ---
+.streamlit/secrets.toml
+**/secrets.toml
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+.history/
+.code-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# OS user files
+.bash_history
+.bash_logout
+.bashrc
+.motd.shown
+
+# Deliverables or outputs
+deliverables/*.png
+deliverables/*.pdf
+deliverables/*.svg
+
+# Docker and dependency artifacts
+*.tar
+docker*.log
+
+# Git
+*.swp
+*.swo
+*~
